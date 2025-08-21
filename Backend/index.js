@@ -7,6 +7,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import pg from "pg";
 import userRouter from "./routes/user.routes.js";
+import captainRouter from "./routes/captain.routes.js";
 
 
 const port = process.env.PORT;
@@ -37,6 +38,7 @@ db.connect().then(()=>{
 
 
 app.use("/users",userRouter);
+app.use("/captains",captainRouter);
 
 
 app.get("/", async (req, res)=>{

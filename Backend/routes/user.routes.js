@@ -7,6 +7,6 @@ const router =express.Router();
 router.post("/signup",signup);
 router.post("/login" ,login);
 router.post("/logout",logout);
-router.post("/check",protectRoute,checkAuth);
+router.get("/check",protectRoute,checkAuth);
 
 export default router;

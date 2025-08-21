@@ -40,3 +40,31 @@ export async function protectRoute(req,res,next){
         console.log("Error in protectRoute middleware: ",err.message);
     }
 }
+
+export async function captainProtectRoute(req,res,next){
+    try{
+        const token = req.cookies.jwt;
+
+        if(!token){
+            return res.status(401).json({message : "Unauthorized - No Token Provided"});
+        }
+
+        const decode = jwt.verify(token,JWT_SECRET);
+
+        if(!decode){
+            return res.status(401).json({message :"Unauthorized- Invalid Token"});
+        }
+
+        // console.log(decode);
+
+        const result = await db.query("select * from captains where id =$1",[decode.userId]);
+        
+        if(result.rows.length === 0){
+            return res.status(404).json({message : "Captain not found"});
+        }
+        req.user = result.rows[0];
+        next();
+    }catch(err){
+        console.log("Error in captainProtectRoute middleware: ",err.message);
+    }
+}
