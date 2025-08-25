@@ -33,12 +33,15 @@ export const signup = async (req,res)=>{
             }
 
             let result1 = await db.query("insert into users (email,firstname,password,lastname) values($1,$2,$3,$4) returning *",[email,firstName,hash,lastName]);
-            generateToken(result1.rows[0].id,res);
+            const token= generateToken(result1.rows[0].id,res);
             return res.status(200).json({
+                token : token,
+                user : {
                 id : result1.rows[0].id,
-                firstName : result1.rows[0].firstname,
-                lastName : result1.rows[0].lastname,
+                firstname : result1.rows[0].firstname,
+                lastname : result1.rows[0].lastname,
                 email : result1.rows[0].email,
+                }
             });
 
         });
@@ -71,8 +74,9 @@ export  async function login(req,res){
                 return res.status(400).json({message: "Invalid credentials"});
             }
 
-            generateToken(result.rows[0].id,res);
+            const token =generateToken(result.rows[0].id,res);
             return res.status(200).json({
+                token : token,
                 user: result.rows[0]
             });
         })
@@ -91,7 +95,6 @@ export  function logout(req,res){
     }catch(err){
         console.log("error in logging out",err.message);
         res.status(500).json({message:"Internal server error"});
-
     }
 }
 

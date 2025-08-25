@@ -62,7 +62,7 @@ export async function captainProtectRoute(req,res,next){
         if(result.rows.length === 0){
             return res.status(404).json({message : "Captain not found"});
         }
-        req.user = result.rows[0];
+        req.captain = result.rows[0];
         next();
     }catch(err){
         console.log("Error in captainProtectRoute middleware: ",err.message);

@@ -41,9 +41,9 @@ export const  signup= async (req, res)=> {
             let result1 = await db.query("INSERT INTO captains (firstname, lastname, email, password, status, vehiclecolor, vehicleplate, vehiclecapacity, vehicletype, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *", 
             [firstName, lastName, email, hash, status , vehiclecolor, vehicleplate, vehiclecapacity, vehicletype,lattitude ,longitude ]);
                 
-            generateToken(result1.rows[0].id,res);
+            const token =generateToken(result1.rows[0].id,res);
                 
-            res.status(201).json(result1.rows[0]);
+            res.status(201).json({token: token, captain: result1.rows[0]});
            
         });
     }catch(err) {
@@ -70,8 +70,8 @@ export async function login(req,res){
                 return res.status(400).json({message: "Invalid credentials"});
             }
 
-            generateToken(result.rows[0].id, res);
-            return res.status(200).json(result.rows[0]);
+            const token = generateToken(result.rows[0].id, res);
+            return res.status(200).json({token : token ,captain :result.rows[0]});
         })
     }catch(err){
         console.log("Error in captain login controller: ", err.message);
@@ -91,7 +91,7 @@ export async function logout(req,res){
 
 export async function checkAuth(req,res){
     try{
-        return res.status(200).json(req.user);
+        return res.status(200).json(req.captain);
     }catch(err){
         console.log("Error in captain checkAuth controller: ", err.message);
         return res.status(500).json({message: "Internal Server Error"});
