@@ -8,6 +8,8 @@ import cookieParser from "cookie-parser";
 import pg from "pg";
 import userRouter from "./routes/user.routes.js";
 import captainRouter from "./routes/captain.routes.js";
+import mapRouter from "./routes/maps.routes.js";
+import rideRouter from "./routes/rides.routes.js";
 
 
 const port = process.env.PORT;
@@ -39,6 +41,8 @@ db.connect().then(()=>{
 
 app.use("/users",userRouter);
 app.use("/captains",captainRouter);
+app.use("/maps",mapRouter);
+app.use("/rides",rideRouter);
 
 
 app.get("/", async (req, res)=>{
