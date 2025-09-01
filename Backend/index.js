@@ -3,6 +3,8 @@ dotenv.config();
 import express from "express";
 const app = express();
 import bodyParser from "body-parser";
+import http from "http";
+import {initializeSocket} from "./socket.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pg from "pg";
@@ -11,6 +13,10 @@ import captainRouter from "./routes/captain.routes.js";
 import mapRouter from "./routes/maps.routes.js";
 import rideRouter from "./routes/rides.routes.js";
 
+
+const server = http.createServer(app); 
+
+initializeSocket(server);
 
 const port = process.env.PORT;
 
@@ -45,11 +51,11 @@ app.use("/maps",mapRouter);
 app.use("/rides",rideRouter);
 
 
-app.get("/", async (req, res)=>{
+app.get("/", async (req, res) => {
     res.send("Hello world!");
 });
 
-
-app.listen(port ,()=>{
-    console.log(`server is running on ${port}`)
-})
+// start server with socket.io attached
+server.listen(port, () => {
+    console.log(`server is running on ${port}`);
+});

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,useLocation } from 'react-router-dom';
 import FinishRide from '../components/FinishRide';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import LiveTracking from '../components/LiveTracking';
+
 
 
 function CaptainRiding(props){
@@ -10,7 +12,19 @@ function CaptainRiding(props){
     const [finishRidePanel,setFinishRidePanel]=React.useState(false);
     const finishRidePanelRef =React.useRef(null);
 
+    const location = useLocation();
+    let rideData = location.state?.ride;
 
+    if(!rideData){
+  
+        const storedRide = localStorage.getItem("captainCurrentRide");
+        if (storedRide) {
+            rideData = JSON.parse(storedRide);
+        }
+    
+    }
+
+    // console.log(rideData);
 
 
     useGSAP(function(){
@@ -36,7 +50,7 @@ function CaptainRiding(props){
             </div>
 
             <div className='h-4/5'>
-                <img className='h-full w-full object-cover' src="/map.jpg" alt="uber map design" />
+                <LiveTracking/>
 
             </div>
             <div className='h-1/5 p-6 flex items-center justify-between relative bg-yellow-400'
@@ -50,8 +64,12 @@ function CaptainRiding(props){
                 <button className='bg-green-600 text-white  font-semibold p-3 px-10 rounded-lg'>Complete Ride</button>
             </div>
 
-            <div ref={finishRidePanelRef} className='fixed w-full z-10 h-full  bottom-0 translate-y-full bg-white  px-3 py-6 pt-12'>
-               <FinishRide setFinishRidePanel={setFinishRidePanel}/>
+            <div ref={finishRidePanelRef} className='fixed w-full z-10  bottom-0 translate-y-full bg-white  px-3 py-6 pt-12'>
+               <FinishRide 
+                rideData = {rideData}
+                setFinishRidePanel={setFinishRidePanel}
+             
+               />
             </div>    
         </div> 
     )

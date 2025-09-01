@@ -287,3 +287,242 @@ Implementation notes
 - Captains controller: controllers/captainAuth.controller.js
 - Middleware: middleware/protectRoute.js (protectRoute, captainProtectRoute)
 - Token helper:
+```markdown
+```
+
+---
+
+## Rides Routes
+
+All rides endpoints are mounted under `/rides` (see `routes/rides.routes.js`). These endpoints require an authenticated user or captain as noted.
+
+### POST /rides/create
+Create a new ride request (user-protected).
+
+Request body:
+```json
+{
+  "pickup": "221B Baker Street, London",
+  "destination": "10 Downing St, London",
+  "vehicleType": "car",
+  "fare": 120
+  ..
+}
+```
+
+Success (200): returns the created ride object (OTP included server-side but not exposed to captains when broadcasting).
+```json
+{
+  "id": 42,
+  "userid": 1,
+  "pickup": "221B Baker Street, London",
+  "destination": "10 Downing St, London",
+  "fare": 120,
+  "status": "pending",
+  "otp": null,
+  "created_at": "2025-09-01T12:00:00.000Z"
+}
+```
+
+Broadcast behaviour: server finds captains within a radius of the pickup coordinates and sends a socket event `new-ride` to each captain with ride + user info.
+
+Errors:
+- 400 — missing fields
+  ```json
+  { "Error": "All Fields are required" }
+  ```
+- 404 / 500 — geocoding, DB, or other server errors
+
+---
+
+### POST /rides/confirm
+Accept a ride (captain action).
+
+Request body:
+```json
+{
+  "rideid": 42,
+  "captainid": 10
+}
+```
+
+Success (200): returns the updated ride record with captain assigned.
+```json
+{
+  "id": 42,
+  "userid": 1,
+  "captainid": 10,
+  "status": "accepted",
+  "vehicletype": "sedan",
+  "pickup": "221B Baker Street, London",
+  "destination": "10 Downing St, London"
+}
+```
+
+Side effect: server emits socket event `ride-confirmed` to the user containing ride + captain info.
+
+Errors:
+- 404 — captain not found, ride not found, or user not found
+
+---
+
+### POST /rides/start-ride
+Mark an accepted ride as started (captain action). Requires ride object and OTP verification.
+
+Request body:
+```json
+{
+  "ride": { "id": 42, "userinfo": { "socketid": "user-socket-id" }, "otp": 123456 },
+  "otp": "123456"
+
+}
+```
+
+Success (200): returns the ride object and notifies the user via socket `ride-started`.
+```json
+{
+  "id": 42,
+  "status": "ongoing",
+  "userid": 1,
+  "captainid": 10
+  ...
+}
+```
+
+Errors:
+- 400 — missing ride or OTP, incorrect OTP
+- 404 — ride not found
+
+---
+
+### POST /rides/end-ride
+Complete an ongoing ride (captain action).
+
+Request body:
+```json
+{
+  "rideid": 42,
+  "ride": { "userinfo": { "socketid": "user-socket-id" } }
+  ...
+}
+```
+
+Success (200): returns the completed ride object and emits `ride-ended` to the user.
+```json
+{
+  "id": 42,
+  "status": "completed",
+  "userid": 1,
+  "captainid": 10,
+  "fare": 120
+}
+```
+
+Errors:
+- 400 — ride not ongoing or missing data
+- 403 — not authorized to end the ride (captain mismatch)
+- 404 — ride not found
+
+---
+
+## Maps Routes
+
+All map endpoints are mounted under `/maps` (see `routes/maps.routes.js`). These endpoints use the OLA Maps APIs via the server.
+
+### POST /maps/getCoordinates
+Geocode an address into latitude/longitude.
+
+Request body:
+```json
+{
+  "address": "221B Baker Street, London"
+}
+```
+
+Success (200): returns coordinates (the controller returns an object with latitude and longitude).
+```json
+{
+  "latitude": 51.523767,
+  "longitude": -0.1585557
+}
+```
+
+Errors:
+- 400 — missing address
+- 404 — no geocoding results
+- 500 — external API or server error
+
+---
+
+### POST /maps/getFare
+Estimate fare between two coordinates. Request body expects Lat1, Lng1, Lat2, Lng2.
+
+Request body:
+```json
+{
+  "Lat1": 51.523767,
+  "Lng1": -0.1585557,
+  "Lat2": 51.507351,
+  "Lng2": -0.127758
+}
+```
+
+Success (200): returns fare estimates per vehicle type.
+```json
+{
+  "auto": 85,
+  "car": 120,
+  "moto": 60
+}
+```
+
+Errors:
+- 500 — failed to fetch routing/distance data from OLA Maps or server error
+
+---
+
+### POST /maps/getSuggestions
+Autocomplete place suggestions.
+
+Request body:
+```json
+{
+  "input": "Baker St"
+}
+```
+
+Success (200): returns suggestions array with display names and coordinates.
+```json
+{
+  "suggestions": [
+    {
+      "display_name": "Baker Street, Marylebone, London, UK",
+      "latitude": 51.523767,
+      "longitude": -0.1585557
+    },
+    {
+      "display_name": "Baker Street Station, London, UK",
+      "latitude": 51.5226,
+      "longitude": -0.1570
+    }
+  ]
+}
+```
+
+Errors:
+- 400 — missing input
+- 404 — no suggestions found
+- 500 — external API or server error
+
+---
+
+## Where to look in the code
+- Users: `controllers/auth.controller.js`
+- Captains: `controllers/captainAuth.controller.js`
+- Rides: `controllers/rides.controller.js`
+- Maps: `controllers/map.controller.js`
+- Routes: `routes/*.js`
+- Middleware: `middleware/protectRoute.js`
+
+---
+Completion: updated the README with Rides and Maps endpoints and example requests/responses.
