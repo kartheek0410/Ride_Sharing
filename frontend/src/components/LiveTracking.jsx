@@ -15,7 +15,7 @@ function LiveTracking() {
     // ✅ Initialize map
     mapInstance.current = olaMaps.init({
       style:
-        "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json",
+        "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard-mr/style.json",
       container: mapRef.current,
       center: [77.61648476788898, 12.932223492103944], // fallback
       zoom: 15,
@@ -51,9 +51,9 @@ function LiveTracking() {
     }
 
     // 🧹 Cleanup on unmount
-    // return () => {
-    //   if (intervalRef.current) clearInterval(intervalRef.current);
-    // };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, []);
 
   return (

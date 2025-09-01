@@ -61,7 +61,7 @@ function Riding(props){
                         <div className='flex items-center gap-5 p-3 border-b-2 border-gray-200'>
                             <img className='text-lg' src="/map-pin-fill.png" alt="" />
                             <div>
-                                <h3 className='text-lg font-medium'>562/11-A</h3>
+                                <h3 className='text-lg font-medium'>DESTINATION</h3>
                                 <p className='text-sm -mt-1 text-gray-600'>{ride?.destination}</p>
                             </div>
                         </div>
