@@ -12,7 +12,8 @@ import userRouter from "./routes/user.routes.js";
 import captainRouter from "./routes/captain.routes.js";
 import mapRouter from "./routes/maps.routes.js";
 import rideRouter from "./routes/rides.routes.js";
-
+import { aj }  from "./lib/arcjet.js";
+import { isSpoofedBot } from "@arcjet/inspect";
 
 const server = http.createServer(app); 
 
@@ -43,6 +44,35 @@ db.connect().then(()=>{
     console.log("connected to DB");
 }).catch(err=> console.log(err));
 
+app.use(async (req,res,next)=>{
+    try{
+        const decision  = await aj.protect(req,{requested : 1}); // each request costs 1 token
+        console.log("Arcjet decision", decision);
+        
+        if(decision.isDenied()){
+            if(decision.reason.isRateLimit()){
+                res.status(429).send("Too many requests - try again later");
+            }else if(decision.reason.isBot()){
+                res.status(403).send("Bots are not allowed");
+            }else{
+                res.status(403).send("Access denied");
+            }
+
+            return;
+        }
+
+        if(decision.results.some((result) =>  result.reason.isBot() && result.reason.isSpoofed())){
+            res.status(403).send("Spoofed bots are not allowed");
+            return;
+        }
+
+        next();
+    }catch(err){
+        console.log(err);
+        res.status(500).send("arcjet :Internal server error");
+        next(err);
+    }
+});
 
 
 app.use("/users",userRouter);
