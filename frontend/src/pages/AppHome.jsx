@@ -70,6 +70,12 @@ function AppHome() {
     localStorage.setItem('currentRide', JSON.stringify(fullData));
   });
 
+  receiveMessage('ride-ended',()=>{
+    localStorage.removeItem("currentRide");
+    setWaitingForDriver(false);
+    setVehicleFound(false);
+  })
+
 
   const handlePickupChange = async (e) => {
     const value = e.target.value;

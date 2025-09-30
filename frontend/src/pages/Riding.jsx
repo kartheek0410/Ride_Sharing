@@ -3,7 +3,8 @@ import { Link,useLocation } from 'react-router-dom';
 import { SocketContext } from '../context/socketContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking.jsx';
-
+import axios from 'axios';
+import {loadStripe} from '@stripe/stripe-js';
 
 function Riding(props){
 
@@ -13,9 +14,8 @@ function Riding(props){
             if (type === "moto") return "/bike.png";
             return "/car.png"; 
     };
-
     const navigatec = useNavigate();
-   const {sendMessage,receiveMessage} = useContext(SocketContext);
+    const {sendMessage,receiveMessage} = useContext(SocketContext);
 
     receiveMessage("ride-ended" , ()=>{
         localStorage.removeItem("currentRide");
@@ -32,6 +32,56 @@ function Riding(props){
         }
     }
 
+    const makePayment = async()=>{
+        const stripe = await loadStripe(`${import.meta.env.VITE_STRIPE_PUBLIC_KEY}`);
+
+        const body = {
+            amount: ride.fare,
+            currency: "inr",
+            transport: ride?.vehicletype,
+            rideId: ride.id,
+        }
+        const headers = {
+            "Content-Type": "application/json"
+        }
+
+        try{
+            
+            const response = await axios.post(
+                `${import.meta.env.VITE_BASE_URL}/api/payments/create-checkout-session`, 
+                body, 
+                { headers: headers,withCredentials: true } 
+
+            );
+            
+           
+            const session = response.data; 
+
+            if(!session || !session.id){ 
+                console.log("Error in payment: Invalid session data received");
+                return;
+            }
+
+           
+
+            const result = stripe.redirectToCheckout({
+                sessionId: session.id,
+            });
+
+          
+
+            if(result.error){
+                console.log(result.error);
+            }
+
+           
+
+
+
+        }catch(err){
+            console.log(err);
+        }
+    }
         
 
     return (
@@ -75,8 +125,14 @@ function Riding(props){
 
                     </div>
                 </div>
-                <button className='w-full mt-5 bg-green-600 text-white  font-semibold p-2 rounded-lg'>Make a Payment</button>
-
+                
+                <button 
+                    onClick={makePayment} 
+                    className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'
+                >
+                    Make a Payment
+                </button>
+                
             </div>
         </div>
     );

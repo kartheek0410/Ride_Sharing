@@ -47,7 +47,7 @@ function LiveTracking() {
           (err) => console.error("Geolocation error:", err),
           { enableHighAccuracy: true }
         );
-      }, 6000); // 10 sec
+      }, 3000); // 10 sec
     }
 
     // 🧹 Cleanup on unmount

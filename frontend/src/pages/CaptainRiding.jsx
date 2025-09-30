@@ -1,16 +1,24 @@
-import React from 'react';
-import { Link ,useLocation } from 'react-router-dom';
+import React, { useContext } from 'react'; // <-- ADDED 'useContext' here
+import { Link ,useLocation ,useNavigate} from 'react-router-dom';
 import FinishRide from '../components/FinishRide';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import LiveTracking from '../components/LiveTracking';
-
+import { SocketContext } from '../context/socketContext.jsx';
 
 
 function CaptainRiding(props){
 
+    const navigate = useNavigate();
     const [finishRidePanel,setFinishRidePanel]=React.useState(false);
     const finishRidePanelRef =React.useRef(null);
+    const {sendMessage,receiveMessage} = useContext(SocketContext); 
+   
+    receiveMessage("ride-ended" , ()=>{
+        localStorage.removeItem("captainCurrentRide");
+        navigate('/captain-home');
+    });
+
 
     const location = useLocation();
     let rideData = location.state?.ride;

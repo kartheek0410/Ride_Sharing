@@ -2,6 +2,34 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## New Features and Updates
+
+### Payment Integration
+- Integrated Stripe payment gateway for secure ride payments
+- Added payment flow in the Riding component
+- New PaymentStatus component for handling payment outcomes
+- Real-time payment status updates with socket events
+
+Key Components:
+1. **PaymentStatus.jsx**
+   - Handles payment success/failure states
+   - Shows transaction details and confirmation
+   - Automatically redirects users after payment
+   - Triggers ride completion through socket events
+   - Styled payment status UI with success/failure indicators
+
+2. **Payment Flow Updates**
+   - Updated Riding.jsx to initiate Stripe payments
+   - Added payment confirmation in the backend
+   - Integrated socket events for ride completion
+   - Added payment status route in App.jsx
+
+### Environment Variables
+Make sure to add these new variables to your frontend environment:
+```plaintext
+VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key_here
+```
+
 ## Installation and Setup
 
 Before running this project, follow these steps:
@@ -67,6 +95,38 @@ npm run dev
 - Make sure your database is running before starting the backend
 - The backend should be running before starting the frontend
 - Default ports: Backend (3000), Frontend (5173)
+- Stripe payment integration requires valid API keys
+- Socket connection is required for real-time payment status updates
+
+## Payment Flow
+
+1. **Initiating Payment**
+   - User completes ride
+   - Clicks "Make a Payment" in the Riding component
+   - Redirected to Stripe checkout
+
+2. **Payment Processing**
+   - Stripe handles payment securely
+   - Success/failure redirect to PaymentStatus component
+   - Transaction ID captured for verification
+
+3. **Payment Confirmation**
+   - Backend verifies payment with Stripe
+   - Updates ride status to 'completed'
+   - Notifies both user and captain through sockets
+   - Auto-redirects to appropriate page
+
+4. **Component Structure**
+   ```
+   Riding
+   └── Payment Initiation
+       └── Stripe Checkout
+           └── PaymentStatus
+               ├── Success State
+               │   └── Redirect to Home
+               └── Failure State
+                   └── Return to Riding
+   ```
 
 ## Available Plugins
 

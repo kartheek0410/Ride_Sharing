@@ -12,6 +12,7 @@ import userRouter from "./routes/user.routes.js";
 import captainRouter from "./routes/captain.routes.js";
 import mapRouter from "./routes/maps.routes.js";
 import rideRouter from "./routes/rides.routes.js";
+import paymentRouter from "./routes/payment.routes.js";
 import { aj }  from "./lib/arcjet.js";
 import { isSpoofedBot } from "@arcjet/inspect";
 
@@ -40,6 +41,9 @@ const db = new pg.Client({
     user : process.env.USER
 });
 
+
+export {db};
+
 db.connect().then(()=>{
     console.log("connected to DB");
 }).catch(err=> console.log(err));
@@ -47,7 +51,7 @@ db.connect().then(()=>{
 app.use(async (req,res,next)=>{
     try{
         const decision  = await aj.protect(req,{requested : 1}); // each request costs 1 token
-        console.log("Arcjet decision", decision);
+        // console.log("Arcjet decision", decision);
         
         if(decision.isDenied()){
             if(decision.reason.isRateLimit()){
@@ -79,13 +83,13 @@ app.use("/users",userRouter);
 app.use("/captains",captainRouter);
 app.use("/maps",mapRouter);
 app.use("/rides",rideRouter);
+app.use("/api/payments",paymentRouter);
 
 
 app.get("/", async (req, res) => {
     res.send("Hello world!");
 });
 
-// start server with socket.io attached
 server.listen(port, () => {
     console.log(`server is running on ${port}`);
 });

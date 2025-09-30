@@ -55,6 +55,11 @@ function CaptainHome() {
     setRidePopUpPanel(true);
   });
 
+  receiveMessage('ride-ended',()=>{
+    localStorage.removeItem("captainCurrentRide");
+  });
+  
+
   async function confirmRide() {
     try {
       const response = await axios.post(

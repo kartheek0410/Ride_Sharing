@@ -516,13 +516,94 @@ Errors:
 
 ---
 
+## Payment Routes
+
+All payment endpoints are mounted under `/api/payments`. These endpoints handle Stripe payment integration for ride payments.
+
+### POST /api/payments/create-checkout-session
+Create a new Stripe checkout session for ride payment.
+
+Request body:
+```json
+{
+  "amount": number,       // Payment amount
+  "currency": "string",   // Currency code (e.g., "usd")
+  "transport": "string",  // Type of transport
+  "rideId": "string"     // ID of the ride being paid for
+}
+```
+
+Success (200):
+```json
+{
+  "id": "cs_test_..." // Stripe checkout session ID
+}
+```
+
+The success URL will include the transaction ID: `<CLIENT_URL>/payment-status?status=success&transaction_id={CHECKOUT_SESSION_ID}`
+The cancel URL: `<CLIENT_URL>/payment-status?status=failed`
+
+Errors:
+- 500 — Stripe session creation failed
+```json
+{ "error": "Failed to create Stripe checkout session." }
+```
+
+### POST /api/payments/payment-confirm
+Confirm a completed payment and update ride status.
+
+Request body:
+```json
+{
+  "transactionId": "cs_test_...", // Stripe checkout session ID
+  "ride": {
+    "id": "string",      // Ride ID
+    "captaininfo": {     // Captain information
+      "socketid": "string"
+    },
+    "userid": {          // User information
+      "socketid": "string"
+    }
+  }
+}
+```
+
+Success (200):
+```json
+{
+  "message": "Payment confirmed and ride updated.",
+  "ride": {
+    // Updated ride object with payment information
+    "id": "string",
+    "paymentid": "string",
+    "orderid": "string",
+    "status": "completed"
+    // ... other ride details
+  }
+}
+```
+
+Socket Events:
+- Emits `ride-ended` event to both captain and user with the updated ride details
+
+Errors:
+- 400 — Missing required information
+```json
+{ "error": "Missing or invalid transactionId or ride information." }
+```
+- 500 — Payment confirmation failed
+```json
+{ "error": "Payment confirmation failed." }
+```
+
 ## Where to look in the code
 - Users: `controllers/auth.controller.js`
 - Captains: `controllers/captainAuth.controller.js`
 - Rides: `controllers/rides.controller.js`
 - Maps: `controllers/map.controller.js`
+- Payments: `controllers/payment.controller.js`
 - Routes: `routes/*.js`
 - Middleware: `middleware/protectRoute.js`
 
 ---
-Completion: updated the README with Rides and Maps endpoints and example requests/responses.
+Completion: updated the README with Rides, Maps, and Payment endpoints and example requests/responses.

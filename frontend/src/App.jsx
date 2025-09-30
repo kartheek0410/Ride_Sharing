@@ -13,6 +13,7 @@ import CaptainProtectWrapper from './pages/CaptainProtectWrapper.jsx';
 import Riding from './pages/Riding.jsx';
 import CaptainRiding from './pages/CaptainRiding.jsx';
 import CaptainLogout from './pages/CaptainLogout.jsx';
+import PaymentStatus from './components/PaymentStatus.jsx';
 
 
 function App() {
@@ -61,6 +62,13 @@ function App() {
           </CaptainProtectWrapper>
          }
         />
+        <Route  path='/payment-status' element={  
+            <UserProtectWrapper>
+              <PaymentStatus/>
+            </UserProtectWrapper>
+        }
+        />
+        
 
       </Routes>
     </div>
